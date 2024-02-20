@@ -1,0 +1,32 @@
+{
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "express-handlebars": "^7.1.2",
+    "express-session": "^1.18.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.11.3"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "name": "gps",
+  "version": "1.0.0",
+  "description": "gps server",
+  "main": "gps.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jester350/gps_server.git"
+  },
+  "keywords": [
+    "gps"
+  ],
+  "author": "Smokinimages",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jester350/gps_server/issues"
+  },
+  "homepage": "https://github.com/jester350/gps_server#readme"
+}

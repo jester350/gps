@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Location Data</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+
+<style>
+    #locationsTable {
+        border-collapse: collapse;
+        width: 100%;
+        border: 1px solid #ddd;
+    }
+    #locationsTable th, #locationsTable td {
+        text-align: left;
+        padding: 8px;
+    }
+    #locationsTable tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    #locationsTable th {
+        background-color: #4CAF50;
+        color: white;
+    }
+    #locationsTable tr:hover {
+        background-color: #ddd;
+    }
+</style>
+
+<style>
+    #locationsTable th:first-child, #locationsTable td:first-child {
+        width: 50% !important; /* Force width for the first column */
+    }
+</style>
+
+</head>
+<body>
+    <h1>Location Data</h1>
+    <table id="locationsTable" class="display" style="display: none;">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Altitude</th>
+                <th>Speed</th>
+                <th>ACU</th>
+                <th>GMAP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each locations}}
+            <tr>
+                <td>{{this.time}}</td>
+                <td>{{this.latitude}}</td>
+                <td>{{this.longitude}}</td>
+                <td>{{this.altitude}}</td>
+                <td>{{this.speed}}</td>
+                <td>{{this.acu}}</td>
+                <td style="text-align: center;"><a href="{{this.gmap }}" target="_blank">Maps</a></td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <script>
+    $(document).ready(function () {
+        $('#locationsTable').DataTable({
+            "order": [[0, "desc"]],
+            "columnDefs": [
+            { "type": "date", "targets": 0 } // Assuming the first column is the date
+            ]
+        });
+        $('#locationsTable').css('display', 'table'); // Show the table
+    });
+    </script>
+</body>
+</html>
