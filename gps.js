@@ -1,4 +1,8 @@
 const express = require('express');
+
+const https = require('https');
+const fs = require('fs');
+
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 config = require('/opt/gps/.secrets/config.js')
@@ -7,7 +11,8 @@ app.use(express.urlencoded({ extended: true })); // for parsing application/x-ww
 const { engine } = require('express-handlebars');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
-const port = 8000;
+const port = 8068;
+const hostname = '0.0.0.0'
 // Database connection configuration
 const pool = new Pool({
     user: config.dbuser,
@@ -31,6 +36,12 @@ app.use(session({
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 
+const options = {
+ key: fs.readFileSync('/opt/.certs/redzed.webhop.me.key'),
+ cert: fs.readFileSync('/opt/.certs/redzed_webhop_me.pem')
+};
+const httpsServer = https.createServer(options,app);
+console.log("ASS")
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
 
@@ -97,6 +108,7 @@ app.post('/login', async (req, res) => {
 // Route to receive GPS coordinates, now protected with tokenMiddleware
 app.post('/gps', tokenMiddleware, async (req, res) => {
     const { timestamp, latitude, longitude, altitude, speed, acu, gmap } = req.body;
+console.log(req.body)
  try {
     const result = await pool.query(
       'INSERT INTO gps_site_gps (time, latitude, longitude,altitude, speed, acu, gmap) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
@@ -136,6 +148,8 @@ app.get('/currenttime', (req, res) => {
   res.send(`Current Date and Time: ${now}`);
 });
 
-app.listen(port,'0.0.0.0', () => {
+
+httpsServer.listen(port,hostname, () => {
     console.log(`GPS ass listening at http://localhost:${port}`);
 });
+

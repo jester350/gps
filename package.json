@@ -6,7 +6,9 @@
     "express-handlebars": "^7.1.2",
     "express-session": "^1.18.0",
     "morgan": "^1.10.0",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "qrcode": "^1.5.3",
+    "speakeasy": "^2.0.0"
   },
   "scripts": {
     "start": "node server.js"
@@ -15,7 +17,6 @@
   "version": "1.0.0",
   "description": "gps server",
   "main": "gps.js",
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jester350/gps_server.git"
