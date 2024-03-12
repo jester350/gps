@@ -9,7 +9,7 @@ const tokenMiddleware = (req, res, next) => {
 
     // Here, you'd typically verify the token. This is just a placeholder.
     // You might use a library like jsonwebtoken (jwt) for actual token verification.
-    if (token === config.yourSecretToken) {
+    if (token === config.token) {
         next(); // Token is valid; proceed to the next middleware/route handler
     } else {
         return res.sendStatus(403); // Invalid token; deny access
