@@ -9,6 +9,7 @@ const { engine } = require('express-handlebars');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const winston = require('winston');
+const gpsRoutes = require('./routes/gpsRoutes');
 const { Pool } = require('pg');
 const port = 8068;
 const hostname = '0.0.0.0'
@@ -22,14 +23,7 @@ const logger = winston.createLogger({
 });
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
-// Database connection configuration
-const pool = new Pool({
-    user: config.dbuser,
-    host: config.dbhost,
-    database: config.database,
-    password: config.dbpassword,
-    port: config.dbport,
-});
+const pool = require('./db'); // assuming db.js is in the same directory
 
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.engine('handlebars', engine());
@@ -60,19 +54,6 @@ const httpsServer = https.createServer(options,app);
 console.log("ASS")
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
-
-// Simple token-based authentication middleware
-const tokenMiddleware = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
-
-    // Replace 'your_secret_token' with your actual secret token
-    if (token == null || token !== 'judys_hot_ass') {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    next(); // Proceed to the next middleware or route handler
-};
 
 app.get('/register', (req, res) => {
     res.render('register');
@@ -121,40 +102,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Route to receive GPS coordinates, now protected with tokenMiddleware
-app.post('/gps', tokenMiddleware, async (req, res) => {
-    const { timestamp, latitude, longitude, altitude, speed, acu, gmap } = req.body;
-console.log(req.body)
- try {
-    const result = await pool.query(
-      'INSERT INTO gps_site_gps (time, latitude, longitude,altitude, speed, acu, gmap) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [timestamp, latitude, longitude,altitude, speed, acu, gmap] // Use the provided timestamp
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error saving location data');
-  }
-});
-
-const requireLogin = (req, res, next) => {
-    if (!req.session.userId) {
-        return res.status(401).send('You must be logged in to access this page');
-    }
-    next();
-};
-
-// Use the requireLogin middleware on the /locations route
-app.get('/locations', requireLogin, async (req, res) => {
-    console.log("Accessing locations");
-    try {
-        const result = await pool.query('SELECT * FROM gps_site_gps ORDER BY time DESC');
-        res.render('locations', { locations: result.rows });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Error retrieving location data');
-    }
-});
+app.use(gpsRoutes);
 
 app.get('/currenttime', (req, res) => {
   // Get the current date and time
