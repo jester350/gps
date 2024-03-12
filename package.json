@@ -8,6 +8,7 @@
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
     "qrcode": "^1.5.3",
+    "serve-favicon": "^2.5.0",
     "speakeasy": "^2.0.0"
   },
   "scripts": {
