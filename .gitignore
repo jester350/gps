@@ -1,3 +1,4 @@
 config.cfg
 .secrets
 moved
+.well-known
