@@ -1,18 +1,27 @@
 const express = require('express');
-
 const https = require('https');
 const fs = require('fs');
-
 const bcrypt = require('bcrypt');
 const session = require('express-session');
-config = require('/opt/gps/.secrets/config.js')
 const app = express();
-app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+const config = require('/opt/gps/.secrets/config.js')
 const { engine } = require('express-handlebars');
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const winston = require('winston');
 const { Pool } = require('pg');
 const port = 8068;
 const hostname = '0.0.0.0'
+
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    transports: [
+        new winston.transports.Console({ format: winston.format.simple() }),
+    ],
+});
+app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
+
 // Database connection configuration
 const pool = new Pool({
     user: config.dbuser,
@@ -22,11 +31,11 @@ const pool = new Pool({
     port: config.dbport,
 });
 
+app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', './views');
 app.use(express.static('public'));
-const morgan = require('morgan');
 app.use(morgan('combined'));
 
 app.use(session({
@@ -36,11 +45,18 @@ app.use(session({
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 
-const options = {
- key: fs.readFileSync('/opt/.certs/redzed.webhop.me.key'),
- cert: fs.readFileSync('/opt/.certs/redzed_webhop_me.pem')
-};
+let key, cert;
+try {
+    key = fs.readFileSync('/opt/.certs/redzed.webhop.me.key');
+    cert = fs.readFileSync('/opt/.certs/redzed_webhop_me.pem');
+} catch (err) {
+    console.error('Error reading SSL certificate files:', err);
+    process.exit(1);
+}
+
+const options = { key, cert };
 const httpsServer = https.createServer(options,app);
+
 console.log("ASS")
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
@@ -140,26 +156,6 @@ app.get('/locations', requireLogin, async (req, res) => {
     }
 });
 
-app.get('/locationsx', requireLogin, async (req, res) => {
-    console.log("Accessing locations");
-    // Retrieve start and end dates from query parameters
-    const { startDate, endDate } = req.query; // Expecting dates in 'YYYY-MM-DD' format
-
-    try {
-        // Update your query to filter by the provided dates
-        const query = `
-            SELECT * FROM gps_site_gps 
-            WHERE time BETWEEN $1 AND $2 
-            ORDER BY time DESC`;
-        const result = await pool.query(query, [startDate, endDate]);
-
-        res.render('locations', { locations: result.rows });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Error retrieving location data');
-    }
-});
-
 app.get('/currenttime', (req, res) => {
   // Get the current date and time
   const now = new Date().toLocaleString(); // Adjust the format as needed
@@ -167,7 +163,6 @@ app.get('/currenttime', (req, res) => {
   // Send the current date and time as a response
   res.send(`Current Date and Time: ${now}`);
 });
-
 
 httpsServer.listen(port,hostname, () => {
     console.log(`GPS ass listening at http://localhost:${port}`);
